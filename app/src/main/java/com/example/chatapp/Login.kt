@@ -47,12 +47,17 @@ class Login : AppCompatActivity() {
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-//                    code for logging in user
-                    val intent = Intent(this@Login, MainActivity::class.java)
-                    finish()
-                    startActivity(intent)
+                    if(mAuth.currentUser?.isEmailVerified == true) {
+                        val intent = Intent(this@Login, MainActivity::class.java)
+                        finish()
+                        startActivity(intent)
+                    } else{
+                        mAuth.signOut()
+                        Toast.makeText(this@Login, "Please verify email first!!!", Toast.LENGTH_SHORT).show()
+                    }
+
                 } else {
-                    Toast.makeText(this@Login, "User Doesn't Exist", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@Login, "Authentication failed", Toast.LENGTH_SHORT).show()
                 }
             }
     }

@@ -7,8 +7,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.ktx.Firebase
 
 class SignUp : AppCompatActivity() {
 
@@ -37,7 +41,28 @@ class SignUp : AppCompatActivity() {
             val password = input_password.text.toString()
             val name = input_name.text.toString()
 
-            signUp(name,email,password);
+            mDbRef = FirebaseDatabase.getInstance().getReference("User")
+            val flag = intArrayOf(0)
+            mDbRef.addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (snap in snapshot.children) {
+                        val user = snap.getValue(User::class.java)
+                        if (user != null && user.email == email) {
+                            flag[0] = 1
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+
+            })
+            if (flag[0] == 1) {
+                Toast.makeText(this@SignUp, "User already exists", Toast.LENGTH_SHORT).show()
+            }
+            else
+                signUp(name,email,password);
 
         }
     }
@@ -46,20 +71,41 @@ class SignUp : AppCompatActivity() {
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-//                    success code -> jump to home
-//                    add user to database
-                    addUserToDatabase(name,email,mAuth.currentUser?.uid!!)
-                    val intent = Intent(this@SignUp, MainActivity::class.java)
-                    finish()
-                    startActivity(intent)
-                } else {
-                   Toast.makeText(this@SignUp, "Some Error Occurred", Toast.LENGTH_LONG).show()
+                    mAuth.currentUser?.sendEmailVerification()?.addOnCompleteListener{ verificationTask ->
+                        if(verificationTask.isSuccessful) {
+                            Toast.makeText(this@SignUp, "User Registered Successfully, Please check your email", Toast.LENGTH_LONG).show()
+
+                            val firebaseUser = mAuth.currentUser
+                            val user_id = firebaseUser?.uid
+
+                            if(user_id != null) {
+                                val databaseReference = FirebaseDatabase.getInstance().getReference("User").child(user_id)
+                                val hashMap = hashMapOf(
+                                    "uid" to user_id,
+                                    "name" to name,
+                                    "email" to email
+                                )
+
+                                databaseReference.setValue(hashMap).addOnCompleteListener { task1 ->
+                                    if(task1.isSuccessful) {
+                                        mAuth.signOut()
+                                        startActivity(Intent(this@SignUp, Login::class.java))
+                                    }
+                                }
+                            }
+                        } else{
+                            Toast.makeText(this@SignUp, verificationTask.exception?.message,  Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+                else {
+                    Toast.makeText(this@SignUp, task.exception?.message,  Toast.LENGTH_LONG).show()
                 }
             }
     }
 
-    private fun addUserToDatabase(name: String, email: String, uid: String) {
-        mDbRef = FirebaseDatabase.getInstance().getReference()
-        mDbRef.child("User").child(uid).setValue(User(name,email,uid))
-    }
+//    private fun addUserToDatabase(name: String, email: String, uid: String) {
+//        mDbRef = FirebaseDatabase.getInstance().getReference()
+//        mDbRef.child("User").child(uid).setValue(User(name,email,uid))
+//    }
 }
