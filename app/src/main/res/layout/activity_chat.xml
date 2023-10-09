@@ -32,7 +32,8 @@
             android:hint="Type a message.."
             android:layout_marginLeft="10dp"
             android:background="@drawable/msg_box_background"
-            android:paddingStart="10dp"/>
+            android:paddingStart="10dp"
+            android:textColor="@color/black"/>
 
         <ImageView
             android:id="@+id/send_btn"

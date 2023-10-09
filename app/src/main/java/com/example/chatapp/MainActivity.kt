@@ -1,7 +1,10 @@
 package com.example.chatapp
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -35,8 +38,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+
         mAuth = FirebaseAuth.getInstance()
-        mDbRef = FirebaseDatabase.getInstance().getReference()
+        mDbRef = FirebaseDatabase.getInstance().reference
 
         userList = ArrayList()
         adapter = UserAdapter(this,userList)
@@ -67,7 +72,28 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
+
+        val profileMenuItem = menu?.findItem(R.id.profile)
+        val logoutMenuItem = menu?.findItem(R.id.logout)
+
+        val textColor = Color.BLACK // Set your desired text color
+        if (profileMenuItem != null) {
+            setMenuItemTextColor(profileMenuItem, textColor)
+        }
+        if (logoutMenuItem != null) {
+            setMenuItemTextColor(logoutMenuItem, textColor)
+        }
         return super.onCreateOptionsMenu(menu)
+    }
+    private fun setMenuItemTextColor(menuItem: MenuItem, color: Int) {
+        val spannableString = SpannableString(menuItem.title)
+        spannableString.setSpan(
+            ForegroundColorSpan(color),
+            0,
+            spannableString.length,
+            0
+        )
+        menuItem.title = spannableString
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -75,6 +101,10 @@ class MainActivity : AppCompatActivity() {
             mAuth.signOut()
             val intent = Intent(this@MainActivity, Login::class.java)
             finish()
+            startActivity(intent)
+            return true
+        } else if(item.itemId == R.id.profile) {
+            val intent = Intent(this@MainActivity, ProfileActivity::class.java)
             startActivity(intent)
             return true
         }

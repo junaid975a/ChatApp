@@ -38,7 +38,7 @@ class ChatActivity : AppCompatActivity() {
         senderRoom = receiver_uid + sender_uid
         receiverRoom = sender_uid + receiver_uid
 
-        supportActionBar?.title = name
+        supportActionBar?.title = name.toString().toUpperCase()
 
         chat_recycler_view = findViewById(R.id.chat_recycler_view)
         msg_box = findViewById(R.id.msg_box)

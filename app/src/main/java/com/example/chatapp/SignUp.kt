@@ -83,7 +83,9 @@ class SignUp : AppCompatActivity() {
                                 val hashMap = hashMapOf(
                                     "uid" to user_id,
                                     "name" to name,
-                                    "email" to email
+                                    "email" to email,
+                                    "phoneNo" to "",
+                                    "imageUrl" to "default"
                                 )
 
                                 databaseReference.setValue(hashMap).addOnCompleteListener { task1 ->
